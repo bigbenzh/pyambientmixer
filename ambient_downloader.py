@@ -16,8 +16,8 @@ import re, os
 import requests
 import untangle
 
-template_url = "http://xml.ambient-mixer.com/audio-template?player=html5&id_template="
-re_js_reg = re.compile(r"AmbientMixer.setup\('#mixer-gui-box', ([0-9]+)\);")
+template_url = "https://xml.ambient-mixer.com/audio-template?player=html5&id_template="
+re_js_reg = re.compile(r"AmbientMixer.setup\(([0-9]+)\);")
 
 def makedirs():
 	if not os.path.exists("sounds"):
@@ -41,6 +41,7 @@ def download_file(url, save = False, filename = None):
 def get_correct_file(url, filename = None):
 	if(filename is None):
 		filename = url.split("/")[-1]
+	print(url)
 	if(not url.startswith(template_url)):
 			page = download_file(url)
 			val = re_js_reg.findall(str(page))[0]
@@ -55,11 +56,13 @@ def download_sounds(xml_file):
 		channel = getattr(obj.audio_template, "channel{}".format(chan_num))
 		new_filename = channel.id_audio.cdata
 		url = channel.url_audio.cdata
+		url_ogg = channel.url_audio.cdata.replace(".mp3",".ogg")
 		ext = url.split('.')[-1]
 		filename = os.path.join("sounds", new_filename + "." + ext)
 		filename_ogg = os.path.join("sounds", new_filename + ".ogg")
 		if not(os.path.exists(filename) or os.path.exists(filename_ogg)):
 			download_file(url, True, filename)
+			download_file(url_ogg, True, filename_ogg)
 
 
 from docopt import docopt
